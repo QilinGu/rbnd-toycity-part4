@@ -7,8 +7,8 @@ class Udacidata
   @@data_path = File.dirname(__FILE__) + "/../data/data.csv"
   def self.create(options={})
   	@@products = []
-  	product=new(options)
-  	add_to_database(product)
+  	product=self.new(options)
+  	self.add_to_database(product)
   	@@products << product
   	return product
   end
@@ -21,11 +21,43 @@ class Udacidata
   	return @@products
   end
 
-  def self.add_to_database *products
+  def self.first(n=1)
+  	n == 1? self.all.first : self.all.take(n)
+  end
+
+  def self.last(n=1)
+    n == 1? self.all.last : self.all.last(n)
+  end
+
+  def self.find(n)
+    result = self.all.select {|product| product.id == n}
+    if result.nil? 
+      raise ProductNotFoundError
+    else
+      result[0]
+    end
+  end
+
+  def self.destroy(n)
+    product = self.find(n)
+    if product
+      products = self.all()
+      products.delete_if {|product| product.id == n}
+      CSV.open(@@data_path, "wb") do |csv|
+        csv <<  ["id", "brand", "name", "price"]
+        products.each do |product|
+          csv << [product.id, product.brand, product.name, product.price]
+        end
+      end
+    else
+      raise ProductNotFoundError
+    end
+    return product
+  end
+
+  def self.add_to_database(product)
   	CSV.open @@data_path, "ab" do |csv|
-  		products.each do |product|
-  			csv << [product.id, product.brand, product.name, product.price]
-  		end
+  		csv << [product.id, product.brand, product.name, product.price]
   	end
   end
 end
