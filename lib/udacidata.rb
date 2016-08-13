@@ -17,7 +17,7 @@ class Udacidata
   	products = []
   	data = CSV.read(@@data_path).drop(1)
   	data.each do |row|
-  		products << self.new(id: row[0], brand: row[1], name: row[2], price: row[4])
+  		products << self.new(id: row[0], brand: row[1], name: row[2], price: row[3])
   	end
   	return products
   end
@@ -32,20 +32,20 @@ class Udacidata
 
   def self.find(n)
     result = self.all.select {|product| product.id == n}
-    if result.nil? 
-      raise ProductNotFoundError
+    if result
+      return result[0]
     else
-      result[0]
+      raise ProductNotFoundError
     end
   end
 
   def self.destroy(n)
     product = self.find(n)
     if product
-      products = self.all()
+      products = self.all
       products.delete_if {|product| product.id == n}
       CSV.open(@@data_path, "wb") do |csv|
-        csv <<  ["id", "brand", "name", "price"]
+        csv <<  ["id", "brand", "product", "price"]
         products.each do |product|
           csv << [product.id, product.brand, product.name, product.price]
         end
@@ -73,9 +73,9 @@ class Udacidata
     end
     
     CSV.open(@@data_path, "wb") do |csv|
-      csv <<  ["id", "brand", "name", "price"]
+      csv <<  ["id", "brand", "product", "price"]
       products.each do |product|
-        csv << [product.id, product.brand, product.name, product.price]
+        csv << [product.id, product.brand, product.name, product.price.to_f]
       end
     end
     return product
