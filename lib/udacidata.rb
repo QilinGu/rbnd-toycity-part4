@@ -3,22 +3,23 @@ require_relative 'errors'
 require 'csv'
 
 class Udacidata
-  # Your code goes here! 
+  # Your code goes here!
+  create_finder_methods(:name, :brand)
   @@data_path = File.dirname(__FILE__) + "/../data/data.csv"
   def self.create(options={})
-  	@@products = []
+  	products = []
   	product=self.new(options)
   	self.add_to_database(product)
-  	@@products << product
+  	products << product
   	return product
   end
   def self.all
-  	@@products = []
+  	products = []
   	data = CSV.read(@@data_path).drop(1)
   	data.each do |row|
-  		@@products << self.new(id: row[0], brand: row[1], name: row[2], price: row[4])
+  		products << self.new(id: row[0], brand: row[1], name: row[2], price: row[4])
   	end
-  	return @@products
+  	return products
   end
 
   def self.first(n=1)
@@ -51,6 +52,31 @@ class Udacidata
       end
     else
       raise ProductNotFoundError
+    end
+    return product
+  end
+
+  def self.where(options={})
+    result = []
+    options.each do |key, value|
+      result << self.all.select {|product| product.send(key) == value}
+    end
+    result.length == 1? result.first : result
+  end
+
+  def update(options={})
+    products = self.class.all
+    index_to_update = products.index{|item| item.id == @id}
+    product = products[index_to_update]
+    options.each do |key, value|
+      product.send("#{key}=", value)
+    end
+    
+    CSV.open(@@data_path, "wb") do |csv|
+      csv <<  ["id", "brand", "name", "price"]
+      products.each do |product|
+        csv << [product.id, product.brand, product.name, product.price]
+      end
     end
     return product
   end
