@@ -32,26 +32,22 @@ class Udacidata
 
   def self.find(n)
     result = self.all.select {|product| product.id == n}
-    if result
-      return result[0]
-    else
+    if result.empty?
       raise ProductNotFoundError
+    else
+      return result[0]
     end
   end
 
   def self.destroy(n)
     product = self.find(n)
-    if product
-      products = self.all
-      products.delete_if {|product| product.id == n}
-      CSV.open(@@data_path, "wb") do |csv|
-        csv <<  ["id", "brand", "product", "price"]
-        products.each do |product|
-          csv << [product.id, product.brand, product.name, product.price]
-        end
+    products = self.all
+    products.delete_if {|product| product.id == n}
+    CSV.open(@@data_path, "wb") do |csv|
+      csv <<  ["id", "brand", "product", "price"]
+      products.each do |product|
+        csv << [product.id, product.brand, product.name, product.price]
       end
-    else
-      raise ProductNotFoundError
     end
     return product
   end
